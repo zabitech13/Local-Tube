@@ -1,0 +1,6 @@
+{
+  "name": "LocalTube",
+  "description": "Personal-use local YouTube downloader utility built with Python Flask, yt-dlp, FFmpeg, and a single-page HTML/CSS/JS frontend.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LocalTube — Personal YouTube Downloader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0c;
+      --surface: #131317;
+      --surface-elevated: #1a1a20;
+      --border: #25252e;
+      --border-strong: #343440;
+      --text: #f4f4f6;
+      --text-secondary: #a1a1b0;
+      --text-muted: #717182;
+      --accent: #e51d2e;
+      --accent-hover: #f22e3f;
+      --accent-ring: rgba(229, 29, 46, 0.35);
+      --success: #22c55e;
+      --success-bg: rgba(34, 197, 94, 0.1);
+      --success-border: rgba(34, 197, 94, 0.28);
+      --error: #f87171;
+      --error-bg: rgba(239, 68, 68, 0.1);
+      --error-border: rgba(239, 68, 68, 0.3);
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --font-display: "Outfit", system-ui, -apple-system, sans-serif;
+      --font-body: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.55;
+      letter-spacing: 0.01em;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .topbar {
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 10, 12, 0.92);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .topbar-inner {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: var(--accent);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .brand-meta {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* Main Workspace */
+    .container {
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
+      flex: 1;
+    }
+
+    .intro {
+      margin-bottom: 28px;
+    }
+
+    .intro h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 3.5vw, 2.35rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      text-wrap: balance;
+      margin-bottom: 8px;
+    }
+
+    .intro p {
+      color: var(--text-secondary);
+      font-size: 15px;
+      max-width: 60ch;
+    }
+
+    /* Main Panel (Single Elevation) */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+    }
+
+    /* URL Input Row */
+    .url-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .field-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .input-wrap {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .url-input {
+      width: 100%;
+      height: 48px;
+      padding: 0 78px 0 14px;
+      background: var(--bg);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      outline: none;
+      transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+    }
+
+    .url-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .url-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-ring);
+    }
+
+    .paste-btn {
+      position: absolute;
+      right: 8px;
+      height: 32px;
+      padding: 0 10px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 140ms var(--ease), border-color 140ms var(--ease);
+      white-space: nowrap;
+    }
+
+    .paste-btn:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 12px 22px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background-color 160ms var(--ease), border-color 160ms var(--ease), transform 120ms var(--ease), opacity 160ms var(--ease);
+    }
+
+    .btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--accent-ring);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: scale(0.985);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: var(--surface-elevated);
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #22222b;
+    }
+
+    .btn-save {
+      background: var(--success);
+      color: #052e16;
+      font-weight: 700;
+    }
+
+    .btn-save:hover {
+      background: #34d36c;
+    }
+
+    /* Error Alert */
+    .alert {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      background: var(--error-bg);
+      border: 1px solid var(--error-border);
+      color: #fecaca;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .alert svg {
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: var(--error);
+    }
+
+    /* Section Dividers inside single panel */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 24px 0;
+    }
+
+    /* Video Preview Section */
+    .video-preview {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .thumb-wrap {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: #0d0d11;
+      border: 1px solid var(--border);
+    }
+
+    .thumb-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .thumb-duration {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: rgba(0, 0, 0, 0.84);
+      color: #ffffff;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .video-meta {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .video-title {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--text);
+      text-wrap: balance;
+    }
+
+    .video-submeta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+    }
+
+    .video-submeta .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sep {
+      color: var(--text-muted);
+    }
+
+    /* Options Grid */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .select-control {
+      width: 100%;
+      height: 46px;
+      padding: 0 36px 0 14px;
+      background-color: var(--bg);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a1a1b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      appearance: none;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+    }
+
+    .select-control:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-ring);
+    }
+
+    .quality-hint {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      min-height: 18px;
+    }
+
+    /* Container Segmented Control */
+    .segmented {
+      display: inline-flex;
+      padding: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      height: 46px;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .segmented button {
+      height: 36px;
+      padding: 0 16px;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 150ms var(--ease), color 150ms var(--ease);
+    }
+
+    .segmented button[aria-pressed="true"] {
+      background: var(--surface-elevated);
+      color: var(--text);
+      box-shadow: inset 0 0 0 1px var(--border-strong);
+    }
+
+    .segmented button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .action-row {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .container-note {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Progress Section */
+    .progress-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .progress-phase {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .progress-percent {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      width: 100%;
+      height: 100%;
+      background: var(--accent);
+      transform-origin: left center;
+      transform: scaleX(0);
+      transition: transform 220ms var(--ease);
+    }
+
+    .progress-fill.complete {
+      background: var(--success);
+    }
+
+    .progress-stats {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Completed Bar */
+    .complete-row {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .file-summary {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .file-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+
+    .file-size {
+      margin-top: 2px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .complete-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Footer */
+    footer {
+      max-width: 820px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 24px 32px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 640px) {
+      .topbar-inner {
+        padding: 14px 16px;
+      }
+
+      .container {
+        padding: 24px 16px 48px;
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .input-row {
+        flex-direction: column;
+      }
+
+      .input-row .btn {
+        width: 100%;
+      }
+
+      .video-preview {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .segmented {
+        width: 100%;
+      }
+
+      .segmented button {
+        flex: 1;
+      }
+
+      .action-row .btn,
+      .complete-actions,
+      .complete-actions .btn {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12" />
+            <path d="m7 10 5 5 5-5" />
+            <path d="M5 20h14" />
+          </svg>
+        </span>
+        LocalTube
+      </a>
+      <span class="brand-meta">127.0.0.1 · Local Utility</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="intro">
+      <h1>Download YouTube video &amp; audio locally</h1>
+      <p>Paste any YouTube URL to inspect available streams, choose your resolution or MP3 export, and mux cleanly via FFmpeg on your machine.</p>
+    </section>
+
+    <section class="panel" aria-label="Downloader workspace">
+      <form id="fetchForm" class="url-form" novalidate>
+        <label class="field-label" for="urlInput">YouTube URL</label>
+        <div class="input-row">
+          <div class="input-wrap">
+            <input
+              id="urlInput"
+              class="url-input"
+              type="url"
+              inputmode="url"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="https://www.youtube.com/watch?v=..."
+              required
+            />
+            <button type="button" id="pasteBtn" class="paste-btn" title="Paste URL from clipboard">Paste</button>
+          </div>
+          <button type="submit" id="fetchBtn" class="btn btn-primary">
+            <span id="fetchBtnText">Fetch Info</span>
+          </button>
+        </div>
+      </form>
+
+      <div id="errorBox" class="alert hidden" role="alert">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span id="errorText"></span>
+      </div>
+
+      <!-- Video Info & Format Controls -->
+      <div id="videoSection" class="hidden">
+        <div class="divider"></div>
+
+        <div class="video-preview">
+          <div class="thumb-wrap">
+            <img id="videoThumb" alt="Video thumbnail" referrerpolicy="no-referrer" />
+            <span id="thumbDuration" class="thumb-duration">0:00</span>
+          </div>
+          <div class="video-meta">
+            <h2 id="videoTitle" class="video-title"></h2>
+            <div class="video-submeta">
+              <span id="videoChannel"></span>
+              <span class="sep" aria-hidden="true">·</span>
+              <span id="videoDuration" class="mono"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="options-grid">
+          <div class="control-group">
+            <label class="field-label" for="qualitySelect">Quality</label>
+            <select id="qualitySelect" class="select-control"></select>
+            <div id="qualityDetail" class="quality-hint"></div>
+          </div>
+
+          <div class="control-group" id="containerGroup">
+            <span class="field-label">Container</span>
+            <div class="segmented" role="group" aria-label="Output video container">
+              <button type="button" id="containerMkv" data-container="mkv" aria-pressed="true">MKV</button>
+              <button type="button" id="containerMp4" data-container="mp4" aria-pressed="false">MP4</button>
+            </div>
+            <div id="containerHint" class="quality-hint">Best for original streams</div>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <span id="containerSummary" class="container-note">
+            Merges bestvideo + bestaudio into MKV via FFmpeg.
+          </span>
+          <button type="button" id="downloadBtn" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <span id="downloadBtnText">Start Download</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Background Job Progress -->
+      <div id="progressSection" class="hidden" aria-live="polite">
+        <div class="divider"></div>
+
+        <div class="progress-header">
+          <span id="progressPhase" class="progress-phase">Starting…</span>
+          <span id="progressPercent" class="progress-percent">0.0%</span>
+        </div>
+
+        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+
+        <div id="progressStats" class="progress-stats"></div>
+
+        <div id="completeRow" class="complete-row hidden">
+          <div class="file-summary">
+            <div id="completeFilename" class="file-name"></div>
+            <div id="completeFilesize" class="file-size"></div>
+          </div>
+          <div class="complete-actions">
+            <a id="saveFileBtn" class="btn btn-save" href="#" download>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Save file
+            </a>
+            <button type="button" id="resetBtn" class="btn btn-secondary">New download</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Personal-use local downloader · Powered by yt-dlp &amp; FFmpeg</span>
+    <span>Bound exclusively to 127.0.0.1</span>
+  </footer>
+
+  <script>
+    (() => {
+      const fetchForm = document.getElementById("fetchForm");
+      const urlInput = document.getElementById("urlInput");
+      const pasteBtn = document.getElementById("pasteBtn");
+      const fetchBtn = document.getElementById("fetchBtn");
+      const fetchBtnText = document.getElementById("fetchBtnText");
+
+      const errorBox = document.getElementById("errorBox");
+      const errorText = document.getElementById("errorText");
+
+      const videoSection = document.getElementById("videoSection");
+      const videoThumb = document.getElementById("videoThumb");
+      const thumbDuration = document.getElementById("thumbDuration");
+      const videoTitle = document.getElementById("videoTitle");
+      const videoChannel = document.getElementById("videoChannel");
+      const videoDuration = document.getElementById("videoDuration");
+
+      const qualitySelect = document.getElementById("qualitySelect");
+      const qualityDetail = document.getElementById("qualityDetail");
+      const containerMkv = document.getElementById("containerMkv");
+      const containerMp4 = document.getElementById("containerMp4");
+      const containerHint = document.getElementById("containerHint");
+      const containerSummary = document.getElementById("containerSummary");
+      const downloadBtn = document.getElementById("downloadBtn");
+      const downloadBtnText = document.getElementById("downloadBtnText");
+
+      const progressSection = document.getElementById("progressSection");
+      const progressPhase = document.getElementById("progressPhase");
+      const progressPercent = document.getElementById("progressPercent");
+      const progressBar = document.getElementById("progressBar");
+      const progressFill = document.getElementById("progressFill");
+      const progressStats = document.getElementById("progressStats");
+      const completeRow = document.getElementById("completeRow");
+      const completeFilename = document.getElementById("completeFilename");
+      const completeFilesize = document.getElementById("completeFilesize");
+      const saveFileBtn = document.getElementById("saveFileBtn");
+      const resetBtn = document.getElementById("resetBtn");
+
+      let currentVideo = null;
+      let selectedContainer = "mkv";
+      let pollTimer = null;
+
+      function showError(message) {
+        errorText.textContent = message;
+        errorBox.classList.remove("hidden");
+      }
+
+      function clearError() {
+        errorText.textContent = "";
+        errorBox.classList.add("hidden");
+      }
+
+      function stopPolling() {
+        if (pollTimer) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+        }
+      }
+
+      function setFetchingState(isFetching) {
+        fetchBtn.disabled = isFetching;
+        urlInput.disabled = isFetching;
+        pasteBtn.disabled = isFetching;
+        fetchBtnText.innerHTML = isFetching
+          ? '<span class="spinner" aria-hidden="true"></span> Fetching…'
+          : "Fetch Info";
+      }
+
+      function setDownloadingState(isDownloading) {
+        downloadBtn.disabled = isDownloading;
+        qualitySelect.disabled = isDownloading;
+        fetchBtn.disabled = isDownloading;
+        urlInput.disabled = isDownloading;
+        const isAudio = qualitySelect.value === "audio_mp3";
+        containerMkv.disabled = isDownloading || isAudio;
+        containerMp4.disabled = isDownloading || isAudio;
+        downloadBtnText.textContent = isDownloading ? "Downloading…" : "Start Download";
+      }
+
+      function updateFormatSummary() {
+        if (!currentVideo) return;
+        const selectedId = qualitySelect.value;
+        const format = (currentVideo.formats || []).find((f) => f.id === selectedId);
+        qualityDetail.textContent = format ? format.detail : "";
+
+        const isAudio = selectedId === "audio_mp3";
+        containerMkv.disabled = isAudio;
+        containerMp4.disabled = isAudio;
+
+        if (isAudio) {
+          containerHint.textContent = "Locked to MP3 for audio";
+          containerSummary.textContent = "Extracts highest-quality audio and encodes to MP3 via FFmpeg.";
+        } else if (selectedContainer === "mkv") {
+          containerHint.textContent = "Lossless mux (VP9 / AV1 / Opus)";
+          containerSummary.textContent =
+            selectedId === "best"
+              ? "Merges bestvideo + bestaudio into MKV via FFmpeg."
+              : `Merges ${selectedId}p video + best audio into MKV via FFmpeg.`;
+        } else {
+          containerHint.textContent = "Broad device compatibility";
+          containerSummary.textContent =
+            selectedId === "best"
+              ? "Merges bestvideo + bestaudio into MP4 via FFmpeg."
+              : `Merges ${selectedId}p video + best audio into MP4 via FFmpeg.`;
+        }
+      }
+
+      function setContainer(ext) {
+        selectedContainer = ext === "mp4" ? "mp4" : "mkv";
+        containerMkv.setAttribute("aria-pressed", String(selectedContainer === "mkv"));
+        containerMp4.setAttribute("aria-pressed", String(selectedContainer === "mp4"));
+        updateFormatSummary();
+      }
+
+      function renderProgress(data) {
+        const pct = Math.max(0, Math.min(100, Number(data.percent) || 0));
+        progressPhase.textContent = data.phase || "Working…";
+        progressPercent.textContent = `${pct.toFixed(1)}%`;
+        progressBar.setAttribute("aria-valuenow", String(Math.round(pct)));
+        progressFill.style.transform = `scaleX(${pct / 100})`;
+        progressFill.classList.toggle("complete", data.status === "finished");
+
+        const parts = [];
+        if (data.speed) parts.push(`Speed ${data.speed}`);
+        if (data.eta && data.status === "downloading") parts.push(`ETA ${data.eta}`);
+        progressStats.innerHTML = parts
+          .map((part) => `<span>${part}</span>`)
+          .join('<span class="sep" aria-hidden="true">·</span>');
+      }
+
+      pasteBtn.addEventListener("click", async () => {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            urlInput.value = text.trim();
+            urlInput.focus();
+            clearError();
+          }
+        } catch {
+          urlInput.focus();
+          showError("Clipboard permission was denied. Press Ctrl+V or Cmd+V to paste.");
+        }
+      });
+
+      containerMkv.addEventListener("click", () => setContainer("mkv"));
+      containerMp4.addEventListener("click", () => setContainer("mp4"));
+      qualitySelect.addEventListener("change", updateFormatSummary);
+
+      fetchForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearError();
+        stopPolling();
+
+        const url = urlInput.value.trim();
+        if (!url) {
+          showError("Please paste a YouTube URL first.");
+          urlInput.focus();
+          return;
+        }
+
+        setFetchingState(true);
+        progressSection.classList.add("hidden");
+        completeRow.classList.add("hidden");
+
+        try {
+          const response = await fetch("/api/info", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url }),
+          });
+          const data = await response.json();
+
+          if (!response.ok) {
+            videoSection.classList.add("hidden");
+            currentVideo = null;
+            showError(data.error || "Failed to fetch video info.");
+            return;
+          }
+
+          currentVideo = data;
+          videoTitle.textContent = data.title;
+          videoChannel.textContent = data.channel;
+          videoDuration.textContent = data.duration_string;
+          thumbDuration.textContent = data.duration_string;
+          videoThumb.src = data.thumbnail || "";
+          videoThumb.alt = `Thumbnail for ${data.title}`;
+
+          qualitySelect.innerHTML = "";
+          (data.formats || []).forEach((fmt) => {
+            const opt = document.createElement("option");
+            opt.value = fmt.id;
+            opt.textContent = fmt.label;
+            qualitySelect.appendChild(opt);
+          });
+
+          setContainer("mkv");
+          videoSection.classList.remove("hidden");
+        } catch {
+          videoSection.classList.add("hidden");
+          currentVideo = null;
+          showError("Could not reach the local Flask server. Make sure app.py is running.");
+        } finally {
+          setFetchingState(false);
+        }
+      });
+
+      downloadBtn.addEventListener("click", async () => {
+        if (!currentVideo) return;
+        clearError();
+        stopPolling();
+
+        setDownloadingState(true);
+        completeRow.classList.add("hidden");
+        progressSection.classList.remove("hidden");
+        renderProgress({ status: "queued", phase: "Starting background download…", percent: 0 });
+
+        try {
+          const response = await fetch("/api/download", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              url: currentVideo.webpage_url || urlInput.value.trim(),
+              quality: qualitySelect.value,
+              container: selectedContainer,
+            }),
+          });
+          const data = await response.json();
+
+          if (!response.ok) {
+            setDownloadingState(false);
+            progressSection.classList.add("hidden");
+            showError(data.error || "Could not start the download.");
+            return;
+          }
+
+          const jobId = data.job_id;
+          pollTimer = setInterval(async () => {
+            try {
+              const statusRes = await fetch(`/api/status/${encodeURIComponent(jobId)}`);
+              const statusData = await statusRes.json();
+
+              if (!statusRes.ok) {
+                stopPolling();
+                setDownloadingState(false);
+                showError(statusData.error || "Lost track of the download job.");
+                return;
+              }
+
+              renderProgress(statusData);
+
+              if (statusData.status === "finished") {
+                stopPolling();
+                setDownloadingState(false);
+                completeFilename.textContent = statusData.filename || "video.mkv";
+                completeFilesize.textContent = statusData.filesize_formatted
+                  ? `File size: ${statusData.filesize_formatted}`
+                  : "Ready to download";
+                saveFileBtn.href = `/api/file/${encodeURIComponent(jobId)}`;
+                saveFileBtn.setAttribute("download", statusData.filename || "");
+                completeRow.classList.remove("hidden");
+              } else if (statusData.status === "error") {
+                stopPolling();
+                setDownloadingState(false);
+                showError(statusData.error || "Download failed.");
+              }
+            } catch {
+              stopPolling();
+              setDownloadingState(false);
+              showError("Lost connection to the local server while polling progress.");
+            }
+          }, 600);
+        } catch {
+          setDownloadingState(false);
+          progressSection.classList.add("hidden");
+          showError("Could not start download. Ensure the local server is running.");
+        }
+      });
+
+      resetBtn.addEventListener("click", () => {
+        stopPolling();
+        clearError();
+        currentVideo = null;
+        urlInput.value = "";
+        videoSection.classList.add("hidden");
+        progressSection.classList.add("hidden");
+        completeRow.classList.add("hidden");
+        urlInput.focus();
+      });
+    })();
+  </script>
+</body>
+</html>

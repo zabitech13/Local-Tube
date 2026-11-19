@@ -1,11 +1,49 @@
-<div align="center">
+# LocalTube — Personal YouTube Downloader
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+A personal-use YouTube video and audio downloader that runs locally on your PC (`127.0.0.1:5000`).
 
-  <h1>Built with AI Studio</h2>
+## Stack
+- **Backend:** Python 3.10+, Flask, `yt-dlp`, FFmpeg
+- **Frontend:** Single-page HTML/CSS/JS (zero frameworks)
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## Prerequisites
+1. **Python 3.10+** — https://www.python.org/downloads/
+2. **FFmpeg** (must be available on your system `PATH`):
+   - **Windows:** `winget install Gyan.FFmpeg` (then open a new terminal)
+   - **macOS:** `brew install ffmpeg`
+   - **Linux (Ubuntu/Debian):** `sudo apt update && sudo apt install -y ffmpeg`
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+Verify FFmpeg is installed:
+```bash
+ffmpeg -version
+```
 
-</div>
+## Installation
+```bash
+python -m venv .venv
+```
+
+Activate the virtual environment:
+- **Windows (PowerShell):** `.\.venv\Scripts\Activate.ps1`
+- **macOS / Linux:** `source .venv/bin/activate`
+
+Install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+## Run Locally
+```bash
+python app.py
+```
+
+Open your browser to:
+```
+http://127.0.0.1:5000
+```
+
+## Keeping yt-dlp Updated
+YouTube updates its player signatures regularly. If downloads stop working, update `yt-dlp`:
+```bash
+pip install -U yt-dlp
+```
